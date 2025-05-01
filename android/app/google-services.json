@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "1079547855420",
+    "firebase_url": "https://harajatlar-ilovasi-default-rtdb.firebaseio.com",
+    "project_id": "harajatlar-ilovasi",
+    "storage_bucket": "harajatlar-ilovasi.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1079547855420:android:6b678d1c7153f35673b939",
+        "android_client_info": {
+          "package_name": "com.example.harajat_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDVDBNo7ubEKRe7RZP5DH4ysGjAe3H7gvE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
