@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:animate_do/animate_do.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -11,12 +12,14 @@ class OyHisobotiPage extends StatefulWidget {
   final String oy;
   final String title;
   final bool isDarkMode;
+  final Function(BuildContext) onEditMonthlyBudget; // Callback qo'shiladi
 
   const OyHisobotiPage({
     super.key,
     required this.oy,
     required this.title,
-    required this.isDarkMode, // default false
+    required this.isDarkMode,
+    required this.onEditMonthlyBudget,
   });
 
   @override
@@ -35,19 +38,24 @@ class _OyHisobotiPageState extends State<OyHisobotiPage> {
     _loadOyHarajatlar();
   }
 
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
   Future<void> _loadOyHarajatlar() async {
     List<HarajatModel> all = await DBServise.loadHarajat();
     List<HarajatModel> filtered = all.where((item) {
-      return item.sana.startsWith(widget.oy) ;
+      return item.sana?.startsWith(widget.oy) ?? false;
     }).toList();
 
     Map<int, int> kunlik = {};
     for (var item in filtered) {
-      DateTime sana = DateTime.parse(item.sana);
+      DateTime sana = DateTime.parse(item.sana!);
       int kun = sana.day;
-      int price = int.tryParse(item.price.replaceAll(" ", "")) ?? 0;
+      int price = int.tryParse(item.price?.replaceAll(" ", "") ?? "0") ?? 0;
       kunlik.update(kun, (v) => v + price, ifAbsent: () => price);
-        }
+    }
 
     List<int> kunlar = kunlik.keys.toList()..sort();
 
@@ -57,123 +65,156 @@ class _OyHisobotiPageState extends State<OyHisobotiPage> {
       return FlSpot(kun.toDouble(), value);
     }).toList();
 
-    setState(() {
-      oyHarajatlar = filtered;
-      lineChartData = spots;
-      isLoading = false;
-    });
+    if (mounted) {
+      setState(() {
+        oyHarajatlar = filtered;
+        lineChartData = spots;
+        isLoading = false;
+      });
+    }
+  }
+
+  void _editMonthlyBudget() {
+    widget.onEditMonthlyBudget(context); // Callback orqali chaqirish
   }
 
   @override
   Widget build(BuildContext context) {
-    final backgroundColor = widget.isDarkMode ? const Color(0xFF121212) : Colors.grey.shade100;
+    final backgroundColor = widget.isDarkMode ? const Color(0xFF121212) : Colors.grey[100];
     final cardColor = widget.isDarkMode ? const Color(0xFF1F1F1F) : Colors.white;
     final textColor = widget.isDarkMode ? Colors.white : Colors.black;
 
     return Scaffold(
       backgroundColor: backgroundColor,
-      appBar: AppBar(
-        title: Text("monthly_report".tr(), style: TextStyle(color: textColor)), // Translate title
-        backgroundColor: widget.isDarkMode ? Colors.black : Colors.white,
-        iconTheme: IconThemeData(color: textColor),
-        centerTitle: true,
-        elevation: 0,
-      ),
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : Column(
-        children: [
-          const SizedBox(height: 12),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Card(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: widget.isDarkMode
+                ? [Colors.black, Colors.grey[900]!]
+                : [Colors.blue[50]!, Colors.white],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: Column(
+          children: [
+            AppBar(
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              title: Text(
+                "monthly_report".tr(),
+                style: TextStyle(
+                  color: widget.isDarkMode ? Colors.orange : const Color(0xFFFF5722),
+                  fontWeight: FontWeight.bold,
+                  fontSize: 22,
+                ),
               ),
-              elevation: 4,
-              color: cardColor,
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+              actions: [
+                IconButton(
+                  icon: Icon(Icons.edit, color: widget.isDarkMode ? Colors.orange : const Color(0xFFFF5722)),
+                  onPressed: _editMonthlyBudget,
+                ),
+              ],
+            ),
+            Expanded(
+              child: isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12),
+                child: ListView(
                   children: [
-                    Text(
-                      "daily_expenses_chart".tr(), // Translate label
-                      style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: textColor),
+                    FadeInDown(
+                      child: Card(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        elevation: 4,
+                        color: cardColor,
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "daily_expenses_chart".tr(),
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: textColor,
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              SizedBox(height: 220, child: dialogOylik()),
+                            ],
+                          ),
+                        ),
+                      ),
                     ),
-                    const SizedBox(height: 12),
-                    SizedBox(height: 220, child: dialogOylik()),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Icon(Icons.list_alt, color: widget.isDarkMode ? Colors.orange : const Color(0xFFFF5722)),
+                        const SizedBox(width: 8),
+                        Text(
+                          "daily_expenses_list".tr(),
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: textColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: oyHarajatlar.length,
+                        itemBuilder: (_, i) {
+                          var h = oyHarajatlar[i];
+                          return Card(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            color: cardColor,
+                            elevation: 2,
+                            margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+                            child: ListTile(
+                              leading: const CircleAvatar(
+                                backgroundColor: Colors.green,
+                                child: Icon(Icons.attach_money, color: Colors.white),
+                              ),
+                              title: Text(
+                                h.malumot ?? 'expense'.tr(),
+                                style: TextStyle(fontWeight: FontWeight.w600, color: textColor),
+                              ),
+                              subtitle: Text(
+                                h.sana != null
+                                    ? DateFormat("d MMMM", "uz")
+                                    .format(DateTime.parse(h.sana!))
+                                    : '',
+                                style: TextStyle(color: textColor.withOpacity(0.6)),
+                              ),
+                              trailing: Text(
+                                "${h.price ?? '0'} so‘m",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: widget.isDarkMode ? Colors.orange : const Color(0xFFFF5722),
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
                   ],
                 ),
               ),
             ),
-          ),
-          const SizedBox(height: 16),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              children: [
-                Icon(Icons.list_alt, color: widget.isDarkMode ? Colors.orangeAccent : Colors.orange),
-                const SizedBox(width: 8),
-                Text(
-                  "daily_expenses_list".tr(), // Translate label
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: textColor,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 8),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: ListView.builder(
-                itemCount: oyHarajatlar.length,
-                itemBuilder: (_, i) {
-                  var h = oyHarajatlar[i];
-                  return Card(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    color: cardColor,
-                    elevation: 2,
-                    margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
-                    child: ListTile(
-                      leading: const CircleAvatar(
-                        backgroundColor: Colors.green,
-                        child: Icon(Icons.attach_money, color: Colors.white),
-                      ),
-                      title: Text(
-                        h.malumot ?? 'expense'.tr(), // Translate expense text
-                        style: TextStyle(fontWeight: FontWeight.w600, color: textColor),
-                      ),
-                      subtitle: Text(
-                        h.sana != null
-                            ? DateFormat("d MMMM", "uz")
-                            .format(DateTime.parse(h.sana))
-                            : '',
-                        style: TextStyle(color: textColor.withOpacity(0.6)),
-                      ),
-                      trailing: Text(
-                        "${h.price} so‘m",
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.orange,
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -231,7 +272,7 @@ class _OyHisobotiPageState extends State<OyHisobotiPage> {
           LineChartBarData(
             spots: lineChartData,
             isCurved: true,
-            color: Colors.blue,
+            color: widget.isDarkMode ? Colors.orange : const Color(0xFFFF5722),
             barWidth: 4,
             belowBarData: BarAreaData(show: false),
           ),

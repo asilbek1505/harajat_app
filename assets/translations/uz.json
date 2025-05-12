@@ -31,5 +31,10 @@
   "expense": "Xarajat",
   "no_expenses": "Hozircha xarajatlar yo'q",
   "please_enter_price": "Iltimos, narxni kiriting",
-  "please_enter_note": "Iltimos, izoh kiriting"
+  "please_enter_note": "Iltimos, izoh kiriting",
+  "no_internet": "Internet yo‘q",
+  "please_check_connection": "Internet aloqasini tekshirib, qayta urinib ko‘ring.",
+  "retry": "Qayta urinib ko‘rish",
+  "monthly_budget": "Oylik Byudjet",
+  "remaining_budget": "Qolgan Byudjet"
 }

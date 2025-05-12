@@ -30,5 +30,10 @@
   "expense": "Expense",
   "no_expenses": "No expenses yet",
   "please_enter_note": "Please enter a note",
-  "please_enter_price": "Please enter the price"
+  "please_enter_price": "Please enter the price",
+  "no_internet": "No Internet Connection",
+  "please_check_connection": "Please check your internet connection and try again.",
+  "retry": "Retry",
+  "monthly_budget": "Monthly Budget",
+  "remaining_budget": "Remaining Budget"
 }

@@ -78,7 +78,26 @@ class DBServise {
     return image;
   }
 
+  static Future<void> deleteHarajat(String harajatId) async {
+    String uid = AuthServise.currentUserId();
+    await _firestore
+        .collection(folde_users)
+        .doc(uid)
+        .collection(folde_harajat)
+        .doc(harajatId)
+        .delete();
+  }
 
+  // Harajatni yangilash
+  static Future<void> updateHarajat(HarajatModel harajat) async {
+    String uid = AuthServise.currentUserId();
+    await _firestore
+        .collection(folde_users)
+        .doc(uid)
+        .collection(folde_harajat)
+        .doc(harajat.id)
+        .update(harajat.toJson());
+  }
 
   static Future<void> storeComment(CommentModel comment) async {
   await _firestore.collection('comments').add(comment.toJson());

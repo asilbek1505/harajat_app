@@ -38,6 +38,7 @@ class _SignUpState extends State<SignUp> {
     }
     return null;
   }
+
   void showMessage(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -60,9 +61,9 @@ class _SignUpState extends State<SignUp> {
       var response = await AuthServise.signUp(email, password, name);
 
       if (response != null) {
-        Member member = Member(email, name,);
+        Member member = Member(email, name);
         await DBServise.storeMember(member);
-        await SharedPerference.storeName(email,name);
+        await SharedPerference.storeName(email, name);
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (_) => Home()),
@@ -80,156 +81,172 @@ class _SignUpState extends State<SignUp> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black87,
-      body: Padding(
-        padding: EdgeInsets.all(16.0),
-        child: Center(
-          child: SingleChildScrollView(
-            child: Form(  // Form vidjeti qo‘shildi
-              key: _formKey,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Text(
-                    "Harajatlar APP",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.orange,
-                    ),
-                  ),
-                  SizedBox(height: 20),
-                  Text(
-                    "Xush kelibsiz!",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                  SizedBox(height: 10),
-                  Text(
-                    "Ro'yxatdan o'tish uchun ma'lumotlarni kiriting",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.white70),
-                  ),
-                  SizedBox(height: 20),
-
-                  // Ism TextField
-                  TextFormField(
-                    controller: _nameController,
-                    decoration: InputDecoration(
-                      labelText: "Ism",
-                      labelStyle: TextStyle(color: Colors.white),
-                      filled: false,
-                      fillColor: Colors.white24,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xFF0F2027), Color(0xFF203A43), Color(0xFF2C5364)],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: Padding(
+          padding: EdgeInsets.all(20.0),
+          child: Center(
+            child: SingleChildScrollView(
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      "Harajatlar APP",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.cyanAccent,
                       ),
-                      prefixIcon: Icon(Icons.person, color: Colors.white),
                     ),
-                    style: TextStyle(color: Colors.white),
-                    validator: (value) {
-                      if (value!.isEmpty) {
-                        return 'Ismingizni kiriting!';
-                      }
-                      return null;
-                    },
-                  ),
-                  SizedBox(height: 10),
-
-                  TextFormField(
-                    controller: _emailController,
-                    decoration: InputDecoration(
-                      labelText: "Email yoki telefon",
-                      labelStyle: TextStyle(color: Colors.white),
-                      filled: false,
-                      fillColor: Colors.white24,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
+                    SizedBox(height: 20),
+                    Text(
+                      "Xush kelibsiz!",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
                       ),
-                      prefixIcon: Icon(Icons.email, color: Colors.white),
                     ),
-                    keyboardType: TextInputType.emailAddress,
-                    style: TextStyle(color: Colors.white),
-                    onChanged: (value) {
-                      _emailController.value = TextEditingValue(
-                        text: value.toLowerCase(),
-                        selection: TextSelection.collapsed(offset: value.length),
-                      );
-                    },
-                    validator: _validateEmail,
-                  ),
-                  SizedBox(height: 10),
+                    SizedBox(height: 10),
+                    Text(
+                      "Ro'yxatdan o'tish uchun ma'lumotlarni kiriting",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Colors.white70),
+                    ),
+                    SizedBox(height: 20),
 
-                  TextFormField(
-                    controller: _passwordController,
-                    decoration: InputDecoration(
-                      labelText: "Parol",
-                      labelStyle: TextStyle(color: Colors.white),
-                      filled: false,
-                      fillColor: Colors.white24,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      prefixIcon: Icon(Icons.lock, color: Colors.white),
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _obscurePassword
-                              ? Icons.visibility
-                              : Icons.visibility_off,
-                          color: Colors.white,
+                    // Ism
+                    TextFormField(
+                      controller: _nameController,
+                      decoration: _inputDecoration("Ismingiz", Icons.person),
+                      style: TextStyle(color: Colors.white),
+                      validator: (value) {
+                        if (value!.isEmpty) {
+                          return 'Ismingizni kiriting!';
+                        }
+                        return null;
+                      },
+                    ),
+                    SizedBox(height: 12),
+
+                    // Email
+                    TextFormField(
+                      controller: _emailController,
+                      decoration: _inputDecoration("Email yoki telefon", Icons.email),
+                      keyboardType: TextInputType.emailAddress,
+                      style: TextStyle(color: Colors.white),
+                      onChanged: (value) {
+                        _emailController.value = TextEditingValue(
+                          text: value.toLowerCase(),
+                          selection: TextSelection.collapsed(offset: value.length),
+                        );
+                      },
+                      validator: _validateEmail,
+                    ),
+                    SizedBox(height: 12),
+
+                    // Parol
+                    TextFormField(
+                      controller: _passwordController,
+                      decoration: _inputDecoration(
+                        "Parol",
+                        Icons.lock,
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                            color: Colors.white,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _obscurePassword = !_obscurePassword;
+                            });
+                          },
                         ),
-                        onPressed: () {
-                          setState(() {
-                            _obscurePassword = !_obscurePassword;
-                          });
-                        },
+                      ),
+                      obscureText: _obscurePassword,
+                      style: TextStyle(color: Colors.white),
+                      onChanged: (value) {
+                        _passwordController.value = TextEditingValue(
+                          text: value.toLowerCase(),
+                          selection: TextSelection.collapsed(offset: value.length),
+                        );
+                      },
+                      validator: _validatePassword,
+                    ),
+                    SizedBox(height: 20),
+
+                    isLoading
+                        ? Center(child: CircularProgressIndicator(color: Colors.cyanAccent))
+                        : ElevatedButton(
+                      onPressed: signUp,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.cyanAccent,
+                        foregroundColor: Colors.black,
+                        padding: EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: Text(
+                        "Ro'yxatdan o'tish",
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                       ),
                     ),
-                    obscureText: _obscurePassword,
-                    style: TextStyle(color: Colors.white),
-                    onChanged: (value) {
-                      _passwordController.value = TextEditingValue(
-                        text: value.toLowerCase(),
-                        selection: TextSelection.collapsed(offset: value.length),
-                      );
-                    },
-                    validator: _validatePassword,
-                  ),
-                  SizedBox(height: 20),
+                    SizedBox(height: 12),
 
-
-                  isLoading
-                      ? Center(child: CircularProgressIndicator(color: Colors.orange))
-                      : ElevatedButton(
-                    onPressed: signUp,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.orange,
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(builder: (_) => LoginPage()),
+                        );
+                      },
+                      child: Text(
+                        "Kirish sahifasiga o'tish",
+                        style: TextStyle(color: Colors.cyanAccent),
+                      ),
                     ),
-                    child: Text("Ro'yxatdan o'tish"),
-                  ),
-                  SizedBox(height: 10),
-
-                  TextButton(
-                    onPressed: () {
-                      Navigator.pushReplacement(context,
-                          MaterialPageRoute(builder: (_) => LoginPage()));
-                    },
-                    child: Text(
-                      "Kirish sahifasiga o'tish",
-                      style: TextStyle(color: Colors.orange),
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
         ),
       ),
+    );
+  }
+
+  InputDecoration _inputDecoration(String label, IconData icon, {Widget? suffixIcon}) {
+    return InputDecoration(
+      labelText: label,
+      labelStyle: TextStyle(color: Colors.white70),
+      filled: true,
+      fillColor: Colors.white10,
+      prefixIcon: Icon(icon, color: Colors.white),
+      suffixIcon: suffixIcon,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: Colors.white),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: Colors.white24),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: Colors.cyanAccent),
+      ),
+      errorStyle: TextStyle(color: Colors.redAccent),
     );
   }
 }
