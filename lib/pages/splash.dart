@@ -73,7 +73,7 @@ class _SplashScreenState extends State<SplashScreen> {
                         child: Text(
                           'H',
                           style: TextStyle(
-                            fontSize: size.width * 0.2, // O'lchamni ekran o'lchamiga moslashtirish
+                            fontSize: size.width * 0.2,
                             color: Colors.white,
                           ),
                         ),
