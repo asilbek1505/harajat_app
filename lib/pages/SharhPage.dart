@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:easy_localization/easy_localization.dart';  // Import for localization
+import 'package:easy_localization/easy_localization.dart';
 import '../Model/Comment_Model.dart';
 import '../servise/auth_servise.dart';
 import '../servise/db_servsie.dart';
@@ -8,25 +8,37 @@ import '../servise/db_servsie.dart';
 class SharhPage extends StatefulWidget {
   final bool isDarkMode;
 
-  SharhPage({required this.isDarkMode, Key? key}) : super(key: key);
+  const SharhPage({required this.isDarkMode, Key? key}) : super(key: key);
 
   @override
-  _SharhPageState createState() => _SharhPageState();
+  State<SharhPage> createState() => _SharhPageState();
 }
 
 class _SharhPageState extends State<SharhPage> {
   final TextEditingController _commentController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   bool isLoading = false;
+  String? _validationError;
+
 
   Future<void> _submitComment() async {
-    if (_commentController.text.trim().isEmpty) return;
+    final text = _commentController.text.trim();
 
-    setState(() => isLoading = true);
+    if (text.isEmpty) {
+      setState(() {
+        _validationError = "Iltimos, sharh kiriting.".tr();
+      });
+      return;
+    }
+
+    setState(() {
+      _validationError = null;
+      isLoading = true;
+    });
 
     final comment = CommentModel(
-      text: _commentController.text.trim(),
-      email: AuthServise.currentUserEmail()??'',
+      text: text,
+      email: AuthServise.currentUserEmail() ?? 'Anonim',
       date: DateTime.now(),
     );
 
@@ -34,10 +46,42 @@ class _SharhPageState extends State<SharhPage> {
 
     _commentController.clear();
     setState(() => isLoading = false);
+
+    FocusScope.of(context).unfocus(); // klaviaturani yopish
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (_) => Container(
+        margin: const EdgeInsets.all(20),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+        decoration: BoxDecoration(
+          color: widget.isDarkMode ? Colors.grey[900] : Colors.white,
+          borderRadius: BorderRadius.circular(24),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.check_circle, color: Colors.green, size: 28),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                "Sizning sharhingiz qabul qilindi.".tr(),
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  color: widget.isDarkMode ? Colors.white : Colors.black87,
+                  fontSize: 16,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
+
   String _formatDate(DateTime dateTime) {
-    return "${dateTime.day}/${dateTime.month}/${dateTime.year}";
+    return DateFormat('dd MMM yyyy, HH:mm').format(dateTime);
   }
 
   @override
@@ -45,134 +89,186 @@ class _SharhPageState extends State<SharhPage> {
     final isDark = widget.isDarkMode;
 
     return Scaffold(
-      backgroundColor: isDark ? Colors.black : Colors.deepPurple,
+      backgroundColor: isDark ? const Color(0xFF121212) : Colors.grey.shade100,
       appBar: AppBar(
-        title: Text("Fikr bildirish".tr(), style: TextStyle(fontWeight: FontWeight.bold)),  // Translated
-        backgroundColor: isDark ? Colors.black : Colors.deepPurple,
+        title: Text(
+          "Fikr bildirish".tr(),
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: isDark ? const Color(0xFF121212) : Colors.white,
         foregroundColor: isDark ? Colors.white : Colors.black,
         centerTitle: true,
-        elevation: 4,
+        elevation: 1,
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection('comments')
-                  .orderBy('timestamp', descending: true)
-                  .snapshots(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-
-                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                  return Center(child: Text("Hozircha sharhlar yo'q".tr(), style: TextStyle(color: Colors.white)));  // Translated
-                }
-
-                final comments = snapshot.data!.docs;
-
-                return ListView.builder(
-                  controller: _scrollController,
-                  reverse: true,
-                  padding: const EdgeInsets.all(16),
-                  itemCount: comments.length,
-                  itemBuilder: (context, index) {
-                    final data = comments[index];
-                    final timestamp = (data['timestamp'] as Timestamp).toDate();
-                    return Card(
-                      elevation: 3,
-                      color: isDark ? Colors.grey.shade800 : Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: ListTile(
-                        leading: const Icon(Icons.comment, color: Colors.deepPurple),
-                        title: Text(
-                          data['text'] ?? '',
-                          style: TextStyle(color: isDark ? Colors.white : Colors.black),
-                        ),
-                        subtitle: Text(
-                          data['email'] ?? 'Anonim',
-                          style: TextStyle(color: isDark ? Colors.white70 : Colors.grey),
-                        ),
-                        trailing: Text(
-                          _formatDate(timestamp),
-                          style: TextStyle(fontSize: 12, color: isDark ? Colors.white70 : Colors.grey),
-                        ),
-                      ),
-                    );
-                  },
-                );
-              },
+      body: SafeArea(
+        child: Column(
+          children: [
+            Expanded(child: _buildCommentsList(isDark)),
+            const Divider(height: 1),
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: _buildCommentInput(isDark),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: _buildCommentInput(isDark),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildCommentInput(bool isDarkMode) {
+  Widget _buildCommentsList(bool isDark) {
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('comments')
+          .orderBy('timestamp', descending: true)
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator.adaptive());
+        }
+
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          return Center(
+            child: Text(
+              "Hozircha sharhlar yo'q".tr(),
+              style: TextStyle(color: isDark ? Colors.white70 : Colors.black54),
+            ),
+          );
+        }
+
+        final comments = snapshot.data!.docs;
+
+        return ListView.builder(
+          controller: _scrollController,
+          reverse: true,
+          padding: const EdgeInsets.all(12),
+          itemCount: comments.length,
+          itemBuilder: (context, index) {
+            final data = comments[index];
+            final timestamp = (data['timestamp'] as Timestamp).toDate();
+            final email = data['email'] ?? 'Anonim';
+            final text = data['text'] ?? '';
+
+            return Container(
+              margin: const EdgeInsets.only(bottom: 10),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: isDark ? Colors.grey.shade900 : Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: isDark
+                    ? []
+                    : [
+                  BoxShadow(
+                    color: Colors.grey.shade300,
+                    blurRadius: 6,
+                    offset: const Offset(0, 3),
+                  )
+                ],
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CircleAvatar(
+                    backgroundColor: Colors.deepPurple.shade100,
+                    child: Text(
+                      email[0].toUpperCase(),
+                      style: const TextStyle(color: Colors.deepPurple),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          email,
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: isDark ? Colors.white : Colors.black87,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          text,
+                          style: TextStyle(
+                            color: isDark ? Colors.white70 : Colors.black87,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          _formatDate(timestamp),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: isDark ? Colors.white38 : Colors.grey,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildCommentInput(bool isDark) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         TextField(
           controller: _commentController,
-          maxLines: 3,
+          maxLines: 4,
           maxLength: 300,
-          style: TextStyle(
-            fontSize: 16,
-            color: isDarkMode ? Colors.white : Colors.black,
-          ),
+          style: TextStyle(color: isDark ? Colors.white : Colors.black),
           decoration: InputDecoration(
-            hintText: "Fikringizni yozing...".tr(),  // Translated
+            hintText: "Fikringizni yozing...".tr(),
             filled: true,
-            fillColor: isDarkMode ? Colors.grey.shade800 : Colors.grey.shade100,
-            hintStyle: TextStyle(
-              color: isDarkMode ? Colors.white70 : Colors.grey,
-            ),
+            fillColor: isDark ? Colors.grey.shade800 : Colors.white,
+            hintStyle: TextStyle(color: isDark ? Colors.white60 : Colors.grey),
+            contentPadding: const EdgeInsets.all(16),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(
-                color: isDarkMode ? Colors.white70 : Colors.grey,
-              ),
+              borderRadius: BorderRadius.circular(20),
+              borderSide: BorderSide.none,
             ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(color: Colors.deepPurple, width: 2),
-            ),
-            contentPadding: const EdgeInsets.symmetric(
-              vertical: 14,
-              horizontal: 16,
-            ),
+            errorText: _validationError,
+            errorStyle: const TextStyle(color: Colors.redAccent),
           ),
+          onChanged: (_) {
+            if (_validationError != null) {
+              setState(() => _validationError = null);
+            }
+          },
         ),
-        const SizedBox(height: 12),
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton.icon(
-            onPressed:_submitComment,
-            icon: const Icon(Icons.send),
-            label: isLoading
-                ? const SizedBox(
-              height: 16,
-              width: 16,
-              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-            )
-                : Text("Yuborish".tr(), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),  // Translated
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.deepPurple,
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
-              ),
+        const SizedBox(height: 10),
+        ElevatedButton.icon(
+          onPressed: isLoading ? null : _submitComment,
+          icon: isLoading
+              ? const SizedBox(
+            width: 16,
+            height: 16,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: Colors.white,
             ),
+          )
+              : const Icon(Icons.send),
+          label: Text(
+            isLoading ? "Yuborilmoqda..." : "Yuborish".tr(),
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.deepPurple,
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           ),
         ),
       ],
     );
   }
+
 }

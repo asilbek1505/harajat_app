@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../Model/Carousel_model.dart';
 import '../Model/Comment_Model.dart';
 import '../Model/Member.dart';
@@ -103,5 +104,38 @@ class DBServise {
   await _firestore.collection('comments').add(comment.toJson());
   }
 
+  /// Oylik budjetni saqlash
+  static Future<void> saveMonthlyBudget(int year, int month, double budget) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
 
+    final docId = "$year-$month";
+    final ref = FirebaseFirestore.instance
+        .collection('monthly_budgets')
+        .doc(user.uid)
+        .collection('budgets')
+        .doc(docId);
+
+    await ref.set({'budget': budget});
+  }
+
+  /// Oylik budjetni yuklash
+  static Future<double?> loadMonthlyBudget(int year, int month) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return null;
+
+    final docId = "$year-$month";
+    final ref = _firestore
+        .collection('monthly_budgets')
+        .doc(user.uid)
+        .collection('budgets')
+        .doc(docId);
+
+    final doc = await ref.get();
+    if (doc.exists && doc.data() != null && doc.data()!.containsKey('budget')) {
+      return (doc.data()!['budget'] as num).toDouble();
+    } else {
+      return null;
+    }
+  }
 }

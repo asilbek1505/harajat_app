@@ -1,5 +1,6 @@
 import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
+import 'package:harajat_app/widgetlar/Carousel.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -178,6 +179,7 @@ class _HisobotlarPageState extends State<HisobotlarPage> {
         ),
         child: Column(
           children: [
+            ReklamaCarousel(),
             Expanded(
               child: isLoading
                   ? const Center(child: CircularProgressIndicator())

@@ -52,12 +52,10 @@ class _SplashScreenState extends State<SplashScreen> {
         ),
         child: Stack(
           children: [
-
             Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Logo animatsiyasi
                   BounceInDown(
                     duration: const Duration(milliseconds: 1000),
                     child: Container(
@@ -74,28 +72,27 @@ class _SplashScreenState extends State<SplashScreen> {
                       child: Center(
                         child: Text(
                           'H',
-                         style: TextStyle(
-                           fontSize:100,
-                           color: Colors.white,),
+                          style: TextStyle(
+                            fontSize: size.width * 0.2, // O'lchamni ekran o'lchamiga moslashtirish
+                            color: Colors.white,
+                          ),
                         ),
                       ),
                     ),
                   ),
 
                   SizedBox(height: size.height * 0.04),
-
-                  // Sarlavha animatsiyasi
                   FadeInUp(
                     duration: const Duration(milliseconds: 800),
                     delay: const Duration(milliseconds: 200),
-                    child: const Text(
+                    child: Text(
                       'Harajatlar',
                       style: TextStyle(
-                        fontSize: 36,
+                        fontSize: size.width * 0.08, // Ekran o'lchamiga moslashtirilgan matn
                         fontWeight: FontWeight.w700,
                         color: Colors.white,
                         letterSpacing: 1.2,
-                        shadows: [
+                        shadows: const [
                           Shadow(
                             blurRadius: 6,
                             color: Colors.black26,
@@ -123,8 +120,6 @@ class _SplashScreenState extends State<SplashScreen> {
                   ),
 
                   SizedBox(height: size.height * 0.06),
-
-                  // Yuklash progressi
                   FadeIn(
                     duration: const Duration(milliseconds: 1200),
                     child: Column(

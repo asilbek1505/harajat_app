@@ -1,9 +1,10 @@
-import 'dart:ui';
 import 'package:animate_do/animate_do.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:harajat_app/widgetlar/Shimmer.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:shimmer/shimmer.dart';
+
 
 import '../Model/harajat_model.dart';
 import '../servise/db_servsie.dart';
@@ -12,7 +13,7 @@ class OyHisobotiPage extends StatefulWidget {
   final String oy;
   final String title;
   final bool isDarkMode;
-  final Function(BuildContext) onEditMonthlyBudget; // Callback qo'shiladi
+  final Function(BuildContext) onEditMonthlyBudget;
 
   const OyHisobotiPage({
     super.key,
@@ -36,11 +37,6 @@ class _OyHisobotiPageState extends State<OyHisobotiPage> {
   void initState() {
     super.initState();
     _loadOyHarajatlar();
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
   }
 
   Future<void> _loadOyHarajatlar() async {
@@ -74,16 +70,11 @@ class _OyHisobotiPageState extends State<OyHisobotiPage> {
     }
   }
 
-  void _editMonthlyBudget() {
-    widget.onEditMonthlyBudget(context); // Callback orqali chaqirish
-  }
-
   @override
   Widget build(BuildContext context) {
     final backgroundColor = widget.isDarkMode ? const Color(0xFF121212) : Colors.grey[100];
     final cardColor = widget.isDarkMode ? const Color(0xFF1F1F1F) : Colors.white;
-    final textColor = widget.isDarkMode ? Colors.white : Colors.black;
-
+    final textColor = widget.isDarkMode ? Colors.tealAccent : Colors.deepOrange;
     return Scaffold(
       backgroundColor: backgroundColor,
       body: Container(
@@ -101,24 +92,24 @@ class _OyHisobotiPageState extends State<OyHisobotiPage> {
             AppBar(
               backgroundColor: Colors.transparent,
               elevation: 0,
+              leading: IconButton(
+                icon: Icon(Icons.arrow_back, color: widget.isDarkMode ? Colors.tealAccent : Colors.deepOrange),
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+              ),
               title: Text(
                 "monthly_report".tr(),
                 style: TextStyle(
-                  color: widget.isDarkMode ? Colors.orange : const Color(0xFFFF5722),
+                  color: widget.isDarkMode ? Colors.tealAccent : Colors.deepOrange,
                   fontWeight: FontWeight.bold,
                   fontSize: 22,
                 ),
               ),
-              actions: [
-                IconButton(
-                  icon: Icon(Icons.edit, color: widget.isDarkMode ? Colors.orange : const Color(0xFFFF5722)),
-                  onPressed: _editMonthlyBudget,
-                ),
-              ],
             ),
             Expanded(
               child: isLoading
-                  ? const Center(child: CircularProgressIndicator())
+                  ?ShimmerExample(isDarkMode: widget.isDarkMode,)
                   : Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12),
                 child: ListView(
@@ -192,13 +183,12 @@ class _OyHisobotiPageState extends State<OyHisobotiPage> {
                               ),
                               subtitle: Text(
                                 h.sana != null
-                                    ? DateFormat("d MMMM", "uz")
-                                    .format(DateTime.parse(h.sana!))
+                                    ? DateFormat("d MMMM", "uz").format(DateTime.parse(h.sana!))
                                     : '',
-                                style: TextStyle(color: textColor.withOpacity(0.6)),
+                                style: TextStyle(color: widget.isDarkMode ? Colors.white : Colors.black),
                               ),
                               trailing: Text(
-                                "${h.price ?? '0'} so‘m",
+                                "${NumberFormat("#,###", "uz").format(int.tryParse(h.price?.replaceAll(" ", "") ?? "0") ?? 0)} so‘m",
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   color: widget.isDarkMode ? Colors.orange : const Color(0xFFFF5722),

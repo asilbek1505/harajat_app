@@ -22,7 +22,7 @@ class _HarajatlarSanasiState extends State<HarajatlarSanasi> {
   Widget build(BuildContext context) {
     final Color bgColor = widget.isDarkMode ? const Color(0xFF2C2C2C) : Colors.white;
     final Color textColor = widget.isDarkMode ? Colors.white : Colors.black;
-    final Color borderColor = widget.isDarkMode ? Colors.orange : Colors.blue;
+    final Color borderColor = widget.isDarkMode ? Colors.tealAccent : Colors.blue;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0),

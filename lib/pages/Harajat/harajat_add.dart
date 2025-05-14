@@ -4,8 +4,8 @@ import 'package:intl/intl.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:animate_do/animate_do.dart';
 
-import '../Model/harajat_model.dart';
-import '../servise/db_servsie.dart';
+import '../../Model/harajat_model.dart';
+import '../../servise/db_servsie.dart';
 
 class HarajatAdd extends StatefulWidget {
   final bool isDarkMode;
@@ -130,7 +130,7 @@ class _HarajatAddState extends State<HarajatAdd> {
     final backgroundColor = isDark ? const Color(0xFF121212) : Colors.white;
     final cardColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
     final textColor = isDark ? Colors.white : Colors.black;
-    final accentColor = isDark ? Colors.orangeAccent : Colors.deepOrange;
+    final accentColor = isDark ? Colors.tealAccent : Colors.deepOrange;
 
     return Scaffold(
       backgroundColor: backgroundColor,

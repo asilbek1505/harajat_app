@@ -27,7 +27,7 @@ class SettingPage extends StatelessWidget {
             _buildSettingItem(
               context: context,
               icon: isDarkMode ? Icons.nightlight_round : Icons.sunny,
-              iconColor: Colors.tealAccent,
+              iconColor: isDarkMode? Colors.tealAccent:Colors.deepOrange,
               title: "dark_mode".tr(),
               trailing: Switch.adaptive(
                 value: isDarkMode,
@@ -40,7 +40,7 @@ class SettingPage extends StatelessWidget {
             _buildSettingItem(
               context: context,
               icon: Icons.comment,
-              iconColor: Colors.tealAccent,
+              iconColor:isDarkMode? Colors.tealAccent:Colors.deepOrange,
               title: "comment".tr(),
               onTap: () {
                 Navigator.push(
